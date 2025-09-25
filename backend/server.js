@@ -13,7 +13,7 @@ const app = express();
 
 
 
-const allowedOrigins = ['https://notes-saa-s-tufx.vercel.app/'];
+const allowedOrigins = ['https://notes-saa-s-tufx.vercel.app'];
 
 app.use(cors({
   origin: function(origin, callback){
