@@ -26,7 +26,7 @@ const Login = () => {
 
         }
         catch (error) {
-            toast.error(error.response.msg || "Something went wrong")
+            toast.error(error?.response?.data?.msg || "Something went wrong")
             console.log(error)
         }
     }

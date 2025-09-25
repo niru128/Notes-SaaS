@@ -11,6 +11,15 @@ const Notes = () => {
     const [content, setContent] = useState('');
     const [tenant, setTenant] = useState(localStorage.getItem('tenant') || '');
     const [role, setRole] = useState(localStorage.getItem('role') || 'Member');
+    const [editingId, setEditingId] = useState(null);
+    const [editTitle, setEditTitle] = useState('');
+    const [editContent, setEditContent] = useState('');
+    const startEditing = (note) => {
+        setEditingId(note._id);
+        setEditTitle(note.title);
+        setEditContent(note.content);
+    };
+
 
     const fetchNotes = async () => {
         const res = await API.get('/notes')
@@ -33,6 +42,33 @@ const Notes = () => {
 
 
     }
+    const deleteNote = async (id) => {
+        try {
+            await API.delete(`/notes/${id}`);
+            toast.success("Note deleted successfully");
+            fetchNotes();
+        } catch (err) {
+            toast.error(err.response?.data?.msg || "Failed to delete note");
+        }
+    };
+
+
+    const updateNote = async () => {
+        try {
+            await API.put(`/notes/${editingId}`, {
+                title: editTitle,
+                content: editContent,
+            });
+            toast.success("Note updated successfully");
+            setEditingId(null);
+            setEditTitle('');
+            setEditContent('');
+            fetchNotes();
+        } catch (err) {
+            toast.error(err.response?.data?.msg || "Failed to update note");
+        }
+    };
+
 
     useEffect(() => {
         fetchNotes();
@@ -62,7 +98,56 @@ const Notes = () => {
                 transition={{ duration: 0.5 }}
             >
                 <h1 className='text-3xl font-bold mb-4'>Notes ({tenant} - {role})</h1>
-                {notes.map(n => <div className='mt-2 mb-6' key={n._id}><h3 className='font-bold text-lg'>{n.title}</h3><p>{n.content}</p></div>)}
+                {notes.map(n => (
+                    <div className='mt-2 mb-6 border-b pb-2' key={n._id}>
+                        {editingId === n._id ? (
+                            <>
+                                <input
+                                    value={editTitle}
+                                    onChange={e => setEditTitle(e.target.value)}
+                                    className='border p-2 w-full font-bold mb-2'
+                                />
+                                <textarea
+                                    value={editContent}
+                                    onChange={e => setEditContent(e.target.value)}
+                                    className='border p-2 w-full mb-2'
+                                />
+                                <button
+                                    onClick={updateNote}
+                                    className='bg-green-600 text-white py-1 px-3 mr-2 rounded cursor-pointer hover:bg-green-800'
+                                >
+                                    Save
+                                </button>
+                                <button
+                                    onClick={() => setEditingId(null)}
+                                    className='bg-gray-500 text-white py-1 px-3 rounded cursor-pointer hover:bg-gray-700'
+                                >
+                                    Cancel
+                                </button>
+                            </>
+                        ) : (
+                            <>
+                                <h3 className='font-bold text-lg'>{n.title}</h3>
+                                <p>{n.content}</p>
+                                <div className='flex space-x-2 mt-2'>
+                                    <button
+                                        onClick={() => startEditing(n)}
+                                        className='bg-yellow-500 text-white py-1 px-3 rounded cursor-pointer hover:bg-yellow-700'
+                                    >
+                                        Edit
+                                    </button>
+                                    <button
+                                        onClick={() => deleteNote(n._id)}
+                                        className='bg-red-600 text-white py-1 px-3 rounded cursor-pointer hover:bg-red-800'
+                                    >
+                                        Delete
+                                    </button>
+                                </div>
+                            </>
+                        )}
+                    </div>
+                ))}
+
 
                 <div className='flex flex-col space-y-2 justify-center'>
                     <h3 className='font-bold'>Add a new Note</h3>
